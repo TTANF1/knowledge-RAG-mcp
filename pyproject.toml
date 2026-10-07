@@ -1,0 +1,19 @@
+[build-system]
+requires = ["hatchling>=1.27,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "knowledge-rag-mcp"
+version = "0.1.0"
+description = "Evidence-first knowledge retrieval with reproducible benchmarks and MCP tools"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0.2,<7"]
+
+[project.optional-dependencies]
+mcp = ["mcp>=2,<3"]
+
+[project.scripts]
+knowledge-rag = "knowledge_rag.cli:main"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/knowledge_rag"]

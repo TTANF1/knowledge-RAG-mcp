@@ -1,0 +1,16 @@
+# 可选的个人资料配置示例。复制为 config.local.toml 后再使用。
+# 仅选择下面列出的目录；不会被默认 config.example.toml 使用。
+[storage]
+database = ".state/personal.db"
+traces = ".state/personal-traces.jsonl"
+
+[[sources]]
+id = "personal"
+root = "C:/path/to/your/knowledge" # 使用前替换为用户实际确认的目录
+include = ["*.md", "**/*.md"]
+exclude = ["Templates/**", "**/Templates/**"]
+
+[[sources]]
+id = "rag-learning"
+root = ".local/learning"
+exclude = ["TEMPLATE.md"]

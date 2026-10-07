@@ -1,0 +1,15 @@
+[storage]
+database = ".state/index.db"
+traces = ".state/traces.jsonl"
+
+[index]
+chunk_chars = 1200
+max_file_bytes = 2000000
+
+[[sources]]
+id = "learning"
+root = "examples/knowledge/learning"
+
+[[sources]]
+id = "product"
+root = "examples/knowledge/product"

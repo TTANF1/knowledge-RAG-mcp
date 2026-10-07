@@ -1,0 +1,30 @@
+{"id":"q01","category":"exact","query":"RRF","kb_ids":["learning"],"relevant":[{"doc_id":"learning:hybrid.md","contains":"RRF 按候选排名融合"}]}
+{"id":"q02","category":"exact","query":"source_hash","kb_ids":["learning"],"relevant":[{"doc_id":"learning:sync.md","contains":"source_hash 表示原文版本"}]}
+{"id":"q03","category":"exact","query":"read_document","kb_ids":["learning"],"relevant":[{"doc_id":"learning:mcp.md","contains":"read_document 按需展开索引中的原文"}]}
+{"id":"q04","category":"exact","query":"Orion","kb_ids":["product"],"relevant":[{"doc_id":"product:ideas.md","contains":"没有开始开发，也没有上线"}]}
+{"id":"q05","category":"exact","query":"SQLite","kb_ids":["product"],"relevant":[{"doc_id":"product:atlas-current.md","contains":"当前实现使用 SQLite 保存文档"}]}
+{"id":"q06","category":"paraphrase","query":"用不同的词表达相同意思怎么找资料","kb_ids":["learning"],"relevant":[{"doc_id":"learning:embedding.md","contains":"含义接近但用词不同的查询"}]}
+{"id":"q07","category":"paraphrase","query":"笔记改了之后如何更新索引","kb_ids":["learning"],"relevant":[{"doc_id":"learning:sync.md","contains":"已修改文件替换旧片段"}]}
+{"id":"q08","category":"paraphrase","query":"只找回来一半所需证据该如何打分","kb_ids":["learning"],"relevant":[{"doc_id":"learning:evaluation.md","contains":"召回率为 0.5"}]}
+{"id":"q09","category":"paraphrase","query":"如何避免把聊天里的猜测当成事实存起来","kb_ids":["product"],"relevant":[{"doc_id":"product:learning-loop.md","contains":"不把未经核对的整段对话自动写成事实"}]}
+{"id":"q10","category":"paraphrase","query":"切成小段会不会失去前后文","kb_ids":["learning"],"relevant":[{"doc_id":"learning:chunking.md","contains":"较小的块更精确，但可能丢失上下文"}]}
+{"id":"q11","category":"bilingual","query":"Embedding 向量相似度 confidence","kb_ids":["learning"],"relevant":[{"doc_id":"learning:embedding.md","contains":"向量相似度不是事实正确概率"}]}
+{"id":"q12","category":"bilingual","query":"p95 latency 延迟","kb_ids":["learning"],"relevant":[{"doc_id":"learning:evaluation.md","contains":"p95 延迟衡量较慢一端的请求耗时"}]}
+{"id":"q13","category":"bilingual","query":"MCP Agent 自动检索","kb_ids":["learning"],"relevant":[{"doc_id":"learning:mcp.md","contains":"MCP 连接不保证 Agent 每次自动检索"}]}
+{"id":"q14","category":"multi_evidence","query":"Embedding 和 BM25 混合检索","kb_ids":["learning"],"relevant":[{"doc_id":"learning:embedding.md","contains":"Embedding 把文本表示为向量"},{"doc_id":"learning:hybrid.md","contains":"混合检索组合两路候选结果"}]}
+{"id":"q15","category":"multi_evidence","query":"source_hash 原文行号 证据版本","kb_ids":["learning"],"relevant":[{"doc_id":"learning:sync.md","contains":"source_hash 表示原文版本"},{"doc_id":"learning:chunking.md","contains":"标题路径和原文行号"}]}
+{"id":"q16","category":"multi_evidence","query":"上下文 字符数 token 4000","relevant":[{"doc_id":"learning:evaluation.md","contains":"不是模型 token 数"},{"doc_id":"product:context.md","contains":"最多 4000 字符"}]}
+{"id":"q17","category":"status","query":"Atlas 负责人","kb_ids":["product"],"filters":{"status":"current"},"relevant":[{"doc_id":"product:atlas-current.md","contains":"负责人是林青"}]}
+{"id":"q18","category":"status","query":"Atlas 负责人","kb_ids":["product"],"filters":{"status":"superseded"},"relevant":[{"doc_id":"product:atlas-old.md","contains":"负责人是周宁"}]}
+{"id":"q19","category":"status","query":"Orion 开发上线","kb_ids":["product"],"filters":{"status":"idea"},"relevant":[{"doc_id":"product:ideas.md","contains":"目前只有想法"}]}
+{"id":"q20","category":"scope","query":"知识库 ID 同名文档","kb_ids":["product"],"relevant":[{"doc_id":"product:access.md","contains":"文档身份由知识库 ID 和相对路径共同确定"}]}
+{"id":"q21","category":"scope","query":"学习总结 实验编号","kb_ids":["product"],"relevant":[{"doc_id":"product:learning-loop.md","contains":"复现步骤、假设、实验编号和结果"}]}
+{"id":"q22","category":"scope","query":"上下文 token","kb_ids":["learning"],"relevant":[{"doc_id":"learning:evaluation.md","contains":"不是模型 token 数"}]}
+{"id":"q23","category":"scope","query":"上下文 4000","kb_ids":["product"],"relevant":[{"doc_id":"product:context.md","contains":"最多 4000 字符"}]}
+{"id":"q24","category":"scope","query":"内容哈希 删除","kb_ids":["learning"],"relevant":[{"doc_id":"learning:sync.md","contains":"源文件删除后移除索引中的旧证据"}]}
+{"id":"q25","category":"unanswerable","query":"zqxv7391","relevant":[]}
+{"id":"q26","category":"unanswerable","query":"我的护照号码是什么","relevant":[]}
+{"id":"q27","category":"unanswerable","query":"Atlas 负责人","kb_ids":["learning"],"relevant":[]}
+{"id":"q28","category":"unanswerable","query":"Orion 上线后有多少付费用户","kb_ids":["product"],"relevant":[]}
+{"id":"q29","category":"unanswerable","query":"Embedding 模型价格是多少","kb_ids":["learning"],"relevant":[]}
+{"id":"q30","category":"unanswerable","query":"RRF","kb_ids":["product"],"relevant":[]}
