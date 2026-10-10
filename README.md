@@ -4,7 +4,7 @@
 
 **给 Agent 的安装与使用指令：** 请在本项目目录执行 `uv sync --locked --extra mcp` 安装依赖，再执行 `uv run --locked --extra mcp knowledge-rag install` 注册并验证 Codex MCP；读取返回的 setup 状态，若为 `needs_knowledge_base`，必须在当前对话主动询问用户要接入的知识库完整路径，等待回答后预览范围、展示文件数量与筛选规则，获得范围确认后保存配置、建立索引并试搜，用户选择稍后配置时结束引导。
 
-**当前阶段：M0，关键词检索与评测基线。** 尚未实现 Embedding、混合检索、重排或自动回答。
+**当前阶段：M0/M1 可用，M2 的 V1 向量存储契约已完成。** 尚未接入真实 Embedding、dense/混合检索、重排或自动回答。
 采用 Python、SQLite、官方 MCP SDK；RAG 流程由小模块显式组织，便于边做边学习。
 
 ## 快速开始
@@ -29,6 +29,21 @@ uv run --locked python -m unittest discover -s tests -v
 详见 [安装后接入引导](docs/onboarding.md)。
 
 ## 先测量，再优化
+
+向量存储可独立验收，使用固定合成向量，不读取已接入的个人知识库：
+
+```powershell
+uv sync --locked --extra mcp --extra vector
+uv run --locked --extra vector knowledge-rag vector-check
+uv run --locked --extra mcp --extra vector python -m unittest discover -s tests -v
+```
+
+`vector-check` 每次在 `.state/vector-checks/<run-id>/` 建立独立 Qdrant local 数据库，
+保留 manifest、报告和 trace；记录版本/代码/fixture 指纹、场景通过数、阶段耗时与磁盘占用。
+失败也保留报告。固定向量只验证存储契约；`index`、MCP 搜索仍使用原有 SQLite/BM25。
+适配器支持 memory/local/server，当前运行验收覆盖 memory/local；Server 部署与性能验证留待后续。
+local 模式独占数据库目录且只执行精确检索。多 MCP 进程共享应使用 Server。
+详见 [EXP-0006](docs/experiments/0006-vector-store-contract.md)。
 
 ```powershell
 uv run --locked knowledge-rag benchmark --strategy overlap
@@ -99,7 +114,7 @@ Agent 应在陈述既往事实前检索，区分想法、计划、已完成事�
 - [架构和边界](docs/architecture.md)
 - [评测与数据记录](docs/benchmark.md)
 - [演进路线](docs/roadmap.md)
-- [向量索引构建计划（尚未实现）](docs/vector-index-plan.md)
+- [向量索引构建计划与进度](docs/vector-index-plan.md)
 - [学习经验回流](docs/learning-loop.md)
 - [安装后接入引导](docs/onboarding.md)
 - [实验模板](docs/experiments/TEMPLATE.md)

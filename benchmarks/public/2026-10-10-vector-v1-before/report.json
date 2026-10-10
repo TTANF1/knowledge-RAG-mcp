@@ -1,0 +1,168 @@
+{
+  "schema_version": 1,
+  "kind": "synthetic-benchmark-summary",
+  "provenance": {
+    "dataset": "smoke-v1",
+    "dataset_hash": "44eccc6560ebae8be705068d260574426001e40538c7493dea5e333d9039d1a0",
+    "corpus_hash": "d48c5bda221cce5774a828d21483a89702ca183596d2be697e02bf0581de02d4",
+    "code_hash": "e9c770f234ad51e0e2a1c3e5e6bfb48aa14a38ec70defe30ede5890593a8ade1",
+    "python": "3.12.14"
+  },
+  "settings": {
+    "strategy": "bm25",
+    "top_k": 5,
+    "max_chars": 4000,
+    "repeats": 5,
+    "warmup": 1,
+    "chunk_chars": 1200,
+    "tokenizer": "latin-word-cjk-bigram-v1",
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "timing_scope": "in-process search including trace append; excluding MCP transport"
+  },
+  "metrics": {
+    "recall_at_k": 0.9583333333333334,
+    "hit_at_k": 0.9583333333333334,
+    "mrr_at_k": 0.9166666666666666,
+    "ndcg_at_k": 0.9275774794642881,
+    "precision_at_k": 0.21666666666666667,
+    "empty_on_unanswerable": 0.6666666666666666,
+    "empty_on_answerable": 0.041666666666666664,
+    "kb_leakage": 0,
+    "queries": 30,
+    "latency_p50_ms": 1.5208500008156989,
+    "latency_p95_ms": 2.221629999621654,
+    "mean_content_chars": 174.03333333333333,
+    "mean_response_json_bytes": 1369.2333333333333
+  },
+  "by_category": {
+    "bilingual": {
+      "recall_at_k": 1.0,
+      "hit_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.0,
+      "kb_leakage": 0,
+      "queries": 3,
+      "latency_p50_ms": 2.176499998313375,
+      "latency_p95_ms": 2.8143800001998898,
+      "mean_content_chars": 213,
+      "mean_response_json_bytes": 1707
+    },
+    "exact": {
+      "recall_at_k": 1.0,
+      "hit_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.0,
+      "kb_leakage": 0,
+      "queries": 5,
+      "latency_p50_ms": 1.438600000255974,
+      "latency_p95_ms": 1.6377799976908134,
+      "mean_content_chars": 104.6,
+      "mean_response_json_bytes": 821.8
+    },
+    "multi_evidence": {
+      "recall_at_k": 1.0,
+      "hit_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "precision_at_k": 0.4,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.0,
+      "kb_leakage": 0,
+      "queries": 3,
+      "latency_p50_ms": 1.8079000001307577,
+      "latency_p95_ms": 2.3857099997258047,
+      "mean_content_chars": 362.3333333333333,
+      "mean_response_json_bytes": 2815
+    },
+    "paraphrase": {
+      "recall_at_k": 0.8,
+      "hit_at_k": 0.8,
+      "mrr_at_k": 0.6,
+      "ndcg_at_k": 0.652371901428583,
+      "precision_at_k": 0.16,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.2,
+      "kb_leakage": 0,
+      "queries": 5,
+      "latency_p50_ms": 1.560199998493772,
+      "latency_p95_ms": 1.8368800010648556,
+      "mean_content_chars": 256.4,
+      "mean_response_json_bytes": 1856
+    },
+    "scope": {
+      "recall_at_k": 1.0,
+      "hit_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.0,
+      "kb_leakage": 0,
+      "queries": 5,
+      "latency_p50_ms": 1.4271000000007916,
+      "latency_p95_ms": 1.6424600005848333,
+      "mean_content_chars": 179.2,
+      "mean_response_json_bytes": 1401.2
+    },
+    "status": {
+      "recall_at_k": 1.0,
+      "hit_at_k": 1.0,
+      "mrr_at_k": 1.0,
+      "ndcg_at_k": 1.0,
+      "precision_at_k": 0.2,
+      "empty_on_unanswerable": null,
+      "empty_on_answerable": 0.0,
+      "kb_leakage": 0,
+      "queries": 3,
+      "latency_p50_ms": 1.3008000023546629,
+      "latency_p95_ms": 1.6972199999145228,
+      "mean_content_chars": 82,
+      "mean_response_json_bytes": 795
+    },
+    "unanswerable": {
+      "recall_at_k": null,
+      "hit_at_k": null,
+      "mrr_at_k": null,
+      "ndcg_at_k": null,
+      "precision_at_k": null,
+      "empty_on_unanswerable": 0.6666666666666666,
+      "empty_on_answerable": null,
+      "kb_leakage": 0,
+      "queries": 6,
+      "latency_p50_ms": 1.5323499992518919,
+      "latency_p95_ms": 1.8202600003860425,
+      "mean_content_chars": 91.33333333333333,
+      "mean_response_json_bytes": 788.5
+    }
+  },
+  "stages_ms": {
+    "load_filter": {
+      "p50": 0.9392000010848278,
+      "p95": 1.3282800005981694
+    },
+    "pack": {
+      "p50": 0.02539999877626542,
+      "p95": 0.0552200002857716
+    },
+    "rank": {
+      "p50": 0.018799999452312477,
+      "p95": 0.04478500068216816
+    },
+    "tokenize": {
+      "p50": 0.2667500011739321,
+      "p95": 0.4963650013451115
+    }
+  },
+  "limitations": [
+    "Approved synthetic development corpus only.",
+    "No private source ids, paths, queries, citations, per-query rows or traces are exported.",
+    "Small warm in-process measurements are not production performance evidence."
+  ]
+}

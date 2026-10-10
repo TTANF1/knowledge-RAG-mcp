@@ -13,7 +13,8 @@
 
 ## M2：语义检索与混合检索
 
-当前进入规划，详见 [向量索引构建计划](vector-index-plan.md) 与 [EXP-0005](experiments/0005-vector-baseline-plan.md)。
+V1 存储契约已完成（2026-10-10），下一阶段为 V2 真实本地编码。
+详见 [向量索引构建计划](vector-index-plan.md)、[EXP-0005](experiments/0005-vector-baseline-plan.md) 与 [EXP-0006](experiments/0006-vector-store-contract.md)。
 使用独立Embedding/VectorStore接口，推荐Qdrant本地服务；local模式用于隔离测试。
 学习 Embedding、相似度与向量索引；按存储契约、真实编码、版本化构建、dense评测逐步交付。
 固定模型版本、输入文本、维度、批量大小；记录向量化耗时、输入 token（如有）、费用（如有）和缓存命中。

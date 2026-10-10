@@ -26,6 +26,8 @@ def main():
     sub.add_parser("serve")
     sub.add_parser("setup-status")
     sub.add_parser("install")
+    vector_check = sub.add_parser("vector-check")
+    vector_check.add_argument("--output", type=Path)
     preview = sub.add_parser("preview")
     preview.add_argument("kb_id")
     preview.add_argument("root")
@@ -74,7 +76,10 @@ def main():
             # Benchmarks intentionally use the explicit source configuration, not saved personal connections.
             if args.command in ("index", "list", "search", "read"):
                 config = active_config(config)
-            if args.command == "install":
+            if args.command == "vector-check":
+                from .vector_check import run_vector_check
+                result = run_vector_check(args.output or config.database.parent / "vector-checks")
+            elif args.command == "install":
                 from .installation import install_codex
                 result = install_codex(config)
             elif args.command == "setup-status":
