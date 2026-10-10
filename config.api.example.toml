@@ -1,0 +1,31 @@
+# Placeholder service and model: replace with the provider's embeddings configuration.
+# Never put the actual API key in this file; set the named environment variable.
+[storage]
+database = ".state/api-demo/index.db"
+traces = ".state/api-demo/traces.jsonl"
+
+[embedding]
+provider = "api"
+base_url = "https://embedding-provider.example/v1"
+model = "your-embedding-model"
+revision = "provider-version-1"
+dimension = 1536
+max_tokens = 8192
+template = "plain-v1"
+tokenizer = "cl100k_base"
+api_key_env = "KNOWLEDGE_RAG_EMBEDDING_KEY"
+cache = ".state/api-demo/embedding-cache.db"
+batch_size = 2
+query_cache = false
+
+[vector]
+root = ".state/api-demo/vectors"
+mode = "local"
+
+[[sources]]
+id = "learning"
+root = "examples/knowledge/learning"
+
+[[sources]]
+id = "product"
+root = "examples/knowledge/product"

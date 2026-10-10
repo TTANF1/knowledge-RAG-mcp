@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from contextlib import closing
-from dataclasses import replace
+from dataclasses import asdict, replace
 import json
 import os
 from pathlib import Path
@@ -44,6 +44,13 @@ def config_text(config: Config) -> str:
     for source in config.sources:
         lines += ["", "[[sources]]", f"id = {quoted(source.id)}", f"root = {quoted(source.root.as_posix())}",
                   f"include = {quoted(list(source.include))}", f"exclude = {quoted(list(source.exclude))}"]
+    for name in ("embedding", "vector"):
+        section = getattr(config, name)
+        if section:
+            lines += ["", "[" + name + "]"]
+            for key, value in asdict(section).items():
+                value = value.as_posix() if isinstance(value, Path) else value
+                lines.append(key + " = " + quoted(value))
     return "\n".join(lines) + "\n"
 
 
@@ -62,18 +69,22 @@ class Onboarding:
             current = self.current()
             example_root = Path(__file__).resolve().parents[2] / "examples" / "knowledge"
             user_sources = [s for s in current.sources if not s.root.is_relative_to(example_root)]
-            with closing(connect(current.database)) as db:
+            from .dense_index import snapshot_config, vector_status
+            with closing(connect(snapshot_config(current).database)) as db:
                 counts = {r["kb_id"]: r["count"] for r in db.execute(
                     "SELECT kb_id,COUNT(*) AS count FROM documents GROUP BY kb_id")}
             state = "needs_knowledge_base" if not user_sources else (
                 "ready" if all(counts.get(s.id, 0) > 0 for s in user_sources) else "needs_index")
-            return {"status": state, "question": QUESTION if state == "needs_knowledge_base" else None,
+            result = {"status": state, "question": QUESTION if state == "needs_knowledge_base" else None,
                     "next_action": {"needs_knowledge_base": "ask_user_in_current_conversation",
                                     "needs_index": "index_configured_sources", "ready": "search_knowledge"}[state],
                     "active_config": str(current.path),
                     "user_knowledge_bases": [{"id": s.id, "root": str(s.root), "documents": counts.get(s.id, 0)}
                                              for s in user_sources],
                     "trace_id": trace.record["trace_id"]}
+            if current.vector:
+                result["vector_index"] = vector_status(current)
+            return result
 
     def _source(self, kb_id: str, root: str, include: list[str] | None, exclude: list[str] | None) -> Source:
         if not kb_id or any(c not in "abcdefghijklmnopqrstuvwxyz0123456789-_" for c in kb_id):

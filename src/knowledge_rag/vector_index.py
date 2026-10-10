@@ -27,7 +27,7 @@ class VectorManifest:
             sources = tuple(sorted((doc_id, source_hash) for doc_id, source_hash in self.source_versions))
         except (ValueError, TypeError):
             raise ValueError("invalid source version manifest") from None
-        if not sources or len({doc_id for doc_id, _ in sources}) != len(sources):
+        if len({doc_id for doc_id, _ in sources}) != len(sources):
             raise ValueError("manifest requires unique source document ids")
         for doc_id, source_hash in sources:
             if (not isinstance(doc_id, str) or not re.fullmatch(r"[a-z0-9_-]+:.+", doc_id)

@@ -38,3 +38,7 @@ config.*.local.toml
 *.pfx
 dist/
 *.egg-info/
+*.onnx
+*.safetensors
+pytorch_model*.bin
+*.partial

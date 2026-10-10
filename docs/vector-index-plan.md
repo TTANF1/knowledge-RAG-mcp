@@ -1,10 +1,11 @@
 # 向量索引构建计划
 
-状态：V1 completed，V2 next（2026-10-10）。固定向量已完成 Qdrant local 持久化验收，尚无真实语义检索成绩。
+状态：V1/V2 completed（2026-10-10）；V3候选构建/缓存更新/失败恢复与V4公开合成基线可用。
+Server部署、清理、独立真实问题集仍待完成。语义成绩见 [EXP-0007](experiments/0007-switchable-embeddings.md)。
 相关决策：[ADR-0002](decisions/0002-vector-storage.md)。
 
-V1 实测见 [EXP-0006](experiments/0006-vector-store-contract.md)。当前 manifest 是不可覆盖的存储契约，
-尚未成为 SQLite/Qdrant 共同的活动代次指针；模型/token 窗口属于 V2，候选构建与原子发布属于 V3。
+V1 实测见 [EXP-0006](experiments/0006-vector-store-contract.md)。存储manifest不可覆盖，
+共同活动指针原子发布SQLite/Qdrant代次，CLI和MCP读取同一快照；使用方式见 [Embedding说明](embeddings.md)。
 
 ## 最小目标
 
@@ -41,15 +42,16 @@ flowchart LR
 
 已新增接口及存储契约；其余按阶段实现：
 
-- `embeddings.py`：已实现 EmbeddingSpec 与 Provider 协议、维度/有限数/归一化验证；真实编码/token统计待 V2。
+- `embeddings.py`：EmbeddingSpec 与 Provider 协议、维度/有限数/归一化验证。
+- `embedding_providers.py`：本地ONNX/API编码、完整token窗口、按角色与输入/模型契约区分的缓存。
 - `vector_store.py`：已实现 VectorStore 与 Qdrant memory/local/server 适配；服务端运行待验收。
-- `vector_index.py`：已实现来源/模型/代次 manifest、指纹核验及不可覆盖保存；构建、缓存、活动发布待 V3。
+- `vector_index.py`：来源/模型/代次manifest、指纹核验及不可覆盖保存；`dense_index.py`实现候选构建与共同活动指针。
 - `vector_check.py`：固定向量本地存储验收，记录阶段耗时、版本与失败报告。
-- 修改 `config.py`：可选向量配置，缺省保持BM25；密钥只读环境变量或私有配置。
-- 修改 `onboarding.py`：完整序列化新配置，接入成功时发布匹配的原文/向量代次。
-- 修改 `retrieval.py`：共同的过滤、引用和预算步骤，BM25/dense仅提供排序候选。
-- 修改 `cli.py`、`server.py`：构建/状态命令与策略选择，长期复用已加载模型。
-- 修改 `benchmark.py`、公开摘要导出：记录向量设置、阶段时间、输入token、构建状态及实验自变量。
+- `config.py`：可选向量配置，缺省保持BM25；密钥只读具名环境变量。
+- `onboarding.py`：序列化新配置与状态，接入新来源后旧向量指针失效，明确手动重建；不会在接入时隐式下载或调用API。
+- `retrieval.py`：共同过滤/引用/预算，dense窗口候选分页、父片段去重、来源版本核验。
+- `cli.py`、`server.py`：下载/验收/构建/状态与策略参数，查询复用已加载模型。
+- `benchmark.py`、公开摘要导出：模型/窗口/CPU参数、构建和编码指标、阶段时间、峰值工作集；过滤本机配置和原始来源身份。
 
 配置需包含：provider、模型ID与revision、维度、最大输入token、距离函数、归一化、模板版本、batch_size、device、
 Qdrant运行模式/地址、collection前缀、缓存与manifest位置、候选数量和精确/近似检索设置。
@@ -126,4 +128,4 @@ vector-status返回not_built/building/ready/stale/failed，包含当前模型契
 模型缓存、向量本地文件、manifest、编码缓存和报告放 `.state/`/`.local/`，继续执行发布检查。
 真实语料与查询不进入公共样例；公开的计划、接口与代码可以发布。
 Docker服务与模型运行环境属于本机记录，写入 `.local/`；实施前检查服务可用性并固定依赖，不把本机配置写进公开计划。
-V1 只建立隔离测试数据库，不下载模型、不迁移现有活动索引。后续先用演示数据建立通路，再以已授权范围构建私有索引。
+V1固定向量隔离测试，V2之后先用公开演示数据验证再按既有确认范围构建私有索引。模型、实际配置与产物默认放项目盘的忽略目录。

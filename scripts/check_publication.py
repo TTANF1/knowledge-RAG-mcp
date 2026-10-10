@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 from fnmatch import fnmatchcase
 import json
+import math
 from pathlib import Path
 import re
 import subprocess
@@ -14,9 +15,54 @@ PRIVATE_PREFIXES = (".state/", ".local/", "logs/", ".logs/", "data/private/", "d
                     "docs/learning/private/", "docs/experiments/private/",
                     "benchmarks/runs/", "benchmarks/baselines/", "benchmarks/private/")
 PRIVATE_GLOBS = ("*.db", "*.db-*", "*.sqlite", "*.sqlite-*", "*.sqlite3", "*.sqlite3-*", "*.log",
-                 "*.connected.toml", "*.local.toml", "*.pem", "*.key", "*.p12", "*.pfx", ".env", ".env.*")
+                 "*.connected.toml", "*.local.toml", "*.pem", "*.key", "*.p12", "*.pfx", ".env", ".env.*",
+                 "*.onnx", "*.safetensors", "pytorch_model*.bin", "*.partial")
 PUBLIC_JSONL = "benchmarks/datasets/smoke-v1.jsonl"
 MAX_TEXT_BYTES = 16_000_000
+
+
+def numeric_object(value, allowed):
+    return isinstance(value, dict) and not set(value) - set(allowed) and all(
+        type(number) in (int, float) and math.isfinite(number) and number >= 0 for number in value.values())
+
+
+def reviewed_vector_summary(report):
+    """Only approved model identity and numeric aggregates may extend the public schema."""
+    settings = report.get("settings", {})
+    if settings.get("strategy") != "dense":
+        return False
+    allowed_settings = {"strategy", "top_k", "max_chars", "repeats", "warmup", "chunk_chars", "tokenizer",
+        "bm25_k1", "bm25_b", "timing_scope", "embedding_spec", "vector_mode", "query_cache", "exact",
+        "batch_size", "threads", "token_window", "score_tolerance"}
+    if set(settings) - allowed_settings:
+        return False
+    spec = settings.get("embedding_spec", {})
+    if not isinstance(spec, dict) or set(spec) != {"provider", "model_id", "revision", "dimension", "max_tokens", "template_version", "normalize", "distance"}:
+        return False
+    for key, pattern in (("provider", r"[A-Za-z0-9_-]{1,100}"), ("model_id", r"[A-Za-z0-9_./-]{1,200}"),
+                         ("revision", r"[A-Za-z0-9_.:-]{1,200}"), ("template_version", r"[A-Za-z0-9_.:-]{1,200}")):
+        if not isinstance(spec[key], str) or not re.fullmatch(pattern, spec[key]):
+            return False
+    if (type(spec["dimension"]) is not int or spec["dimension"] < 1 or type(spec["max_tokens"]) is not int
+            or spec["max_tokens"] < 1 or type(spec["normalize"]) is not bool or spec["distance"] not in ("cosine", "dot", "euclid")):
+        return False
+    counts = {"hits", "misses", "encoded_tokens", "encode_calls", "encode_ms"}
+    if "embedding_queries" in report and not numeric_object(report["embedding_queries"], counts):
+        return False
+    if "vector_build" in report:
+        build = report["vector_build"]
+        numbers = {"documents", "chunks", "points", "split_chunks", "input_tokens", "model_load_ms", "operation_ms", "storage_bytes"}
+        if not isinstance(build, dict) or set(build) - numbers - {"encoding", "stages_ms", "process_memory"}:
+            return False
+        if not numeric_object({key: value for key, value in build.items() if key in numbers}, numbers):
+            return False
+        if "encoding" in build and not numeric_object(build["encoding"], counts):
+            return False
+        if "stages_ms" in build and not numeric_object(build["stages_ms"], {"model_load", "snapshot", "token_windows", "encode", "upsert", "verify", "publish"}):
+            return False
+        if "process_memory" in build and not numeric_object(build["process_memory"], {"working_set_bytes", "peak_working_set_bytes", "private_bytes"}):
+            return False
+    return True
 
 
 def git(root: Path, *args: str, check: bool = True) -> bytes:
@@ -79,6 +125,9 @@ def inspect_file(name: str, content: bytes, tokens: list[str]) -> list[str]:
         try:
             report = json.loads(text)
             allowed = {"schema_version", "kind", "provenance", "settings", "metrics", "by_category", "stages_ms", "limitations"}
+            if {"vector_build", "embedding_queries"} & set(report):
+                if reviewed_vector_summary(report):
+                    allowed |= {"vector_build", "embedding_queries"}
             if report.get("kind") != "synthetic-benchmark-summary" or set(report) - allowed:
                 findings.append("unreviewed-public-benchmark-report")
             if report.get("provenance", {}).get("dataset") != "smoke-v1":

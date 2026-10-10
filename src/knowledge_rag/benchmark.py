@@ -107,8 +107,12 @@ def run_benchmark(config: Config, dataset: Path, output: Path, strategy: str = "
     run_dir = output.resolve() / run_id
     run_dir.mkdir(parents=True, exist_ok=False)
     run_config = replace(config, traces=run_dir / "traces.jsonl")
+    if config.vector:
+        run_config = replace(run_config, vector=replace(config.vector, root=run_dir / "vectors"))
     rows = []
-    with tempfile.TemporaryDirectory(prefix="knowledge-rag-benchmark-") as temp:
+    vector_build = None
+    config.database.parent.mkdir(parents=True, exist_ok=True)
+    with tempfile.TemporaryDirectory(prefix="knowledge-rag-benchmark-", dir=config.database.parent) as temp:
         run_config = replace(run_config, database=Path(temp) / "index.db")
         indexing = ingest(run_config)
         snapshot = manifest(run_config.database)
@@ -126,6 +130,9 @@ def run_benchmark(config: Config, dataset: Path, output: Path, strategy: str = "
                 metadata = json.loads(doc["metadata"])
                 if any(metadata.get(k) != v for k, v in case.get("filters", {}).items()):
                     raise ValueError(f"label conflicts with metadata filter: {case['id']}")
+        if strategy == "dense":
+            from .dense_index import build_vector
+            vector_build = build_vector(run_config)
         retriever = Retriever(run_config, strategy)
         # Seeded order reduces systematic order bias. Each case has warmups and repeated timings.
         order = list(cases)
@@ -142,7 +149,9 @@ def run_benchmark(config: Config, dataset: Path, output: Path, strategy: str = "
                 timings.append((perf_counter() - start) * 1000)
                 trace_ids.append(result["trace_id"])
                 outputs.append([(h["chunk_id"], h["score"], h["text"]) for h in result["hits"]])
-            if any(value != outputs[0] for value in outputs[1:]):
+            if any([(x[0], x[2]) for x in value] != [(x[0], x[2]) for x in outputs[0]]
+                   or any(not math.isclose(x[1], y[1], rel_tol=1e-6, abs_tol=1e-7) for x, y in zip(value, outputs[0]))
+                   for value in outputs[1:]):
                 raise ValueError("nondeterministic retrieval; benchmark needs repeated quality aggregation")
             rows.append({"id": case["id"], "category": case["category"], "trace_ids": trace_ids,
                          "metrics": evaluate(case, result["hits"], top_k), "latencies_ms": timings,
@@ -175,6 +184,18 @@ def run_benchmark(config: Config, dataset: Path, output: Path, strategy: str = "
                               "No answer generation: faithfulness and hallucination are not measured.",
                               "Character/byte counts are not model tokens or monetary cost.",
                               "Small warm-cache in-process timings are not production capacity measurements."]}
+    if vector_build:
+        report["vector_build"] = vector_build
+        report["settings"]["embedding_spec"] = vector_build["embedding_spec"]
+        report["settings"]["vector_mode"] = config.vector.mode
+        report["settings"]["query_cache"] = config.embedding.query_cache
+        report["settings"]["exact"] = True
+        report["settings"]["batch_size"] = config.embedding.batch_size
+        report["settings"]["threads"] = config.embedding.threads
+        report["settings"]["token_window"] = "complete-character-coverage-v1"
+        report["settings"]["score_tolerance"] = {"relative": 1e-6, "absolute": 1e-7}
+        report["embedding_queries"] = {key: sum(record.get("embedding", {}).get(key, 0) for record in measured)
+                                       for key in ("hits", "misses", "encoded_tokens", "encode_calls", "encode_ms")}
     (run_dir / "report.json").write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
     (run_dir / "dataset.jsonl").write_text("".join(canonical(c) + "\n" for c in cases), encoding="utf-8")
     summary = [f"# Benchmark {run_id}", "", f"Strategy: {strategy}; corpus: {report['corpus_hash']}", "",

@@ -61,7 +61,7 @@ class ContractTests(unittest.TestCase):
 
     def test_manifest_invalid_sources(self):
         manifest, _ = fixture()
-        for sources in ((), (("invalid", digest("a")),), (("alpha:a", "short"),),
+        for sources in ((("invalid", digest("a")),), (("alpha:a", "short"),),
                         (("alpha:a", digest("a")), ("alpha:a", digest("b")))):
             with self.subTest(sources=sources), self.assertRaises(ValueError):
                 replace(manifest, source_versions=sources)

@@ -1,0 +1,29 @@
+# Public synthetic sources. Runtime model/cache/index files stay inside ignored .state/.
+[storage]
+database = ".state/vector-demo/index.db"
+traces = ".state/vector-demo/traces.jsonl"
+
+[embedding]
+provider = "local"
+model = "intfloat/multilingual-e5-small"
+revision = "614241f622f53c4eeff9890bdc4f31cfecc418b3"
+dimension = 384
+max_tokens = 512
+template = "e5-v1"
+model_dir = ".state/models/multilingual-e5-small"
+cache = ".state/vector-demo/embedding-cache.db"
+batch_size = 2
+threads = 2
+query_cache = false
+
+[vector]
+root = ".state/vector-demo/vectors"
+mode = "local"
+
+[[sources]]
+id = "learning"
+root = "examples/knowledge/learning"
+
+[[sources]]
+id = "product"
+root = "examples/knowledge/product"

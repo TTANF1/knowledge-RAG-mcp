@@ -109,6 +109,19 @@ class PublicationTests(unittest.TestCase):
         issues = inspect_file("benchmarks/public/example/report.json", b'{"per_query":[]}', [])
         self.assertIn("unreviewed-public-benchmark-report", issues)
 
+    def test_dense_summary_accepts_only_numeric_telemetry(self):
+        root = Path(__file__).resolve().parents[1]
+        path = root / "benchmarks/public/2026-10-10-embedding-dense/report.json"
+        report = json.loads(path.read_text(encoding="utf-8"))
+        self.assertEqual(inspect_file("benchmarks/public/test/report.json", json.dumps(report).encode(), []), [])
+        for location, key, value in (("vector_build", "source_ids", ["private:note"]),
+                                     ("embedding_queries", "api_key", "synthetic-credential")):
+            candidate = json.loads(json.dumps(report))
+            candidate[location][key] = value
+            self.assertIn("unreviewed-public-benchmark-report", inspect_file("benchmarks/public/test/report.json", json.dumps(candidate).encode(), []))
+        report["vector_build"]["encoding"]["misses"] = "private content"
+        self.assertIn("unreviewed-public-benchmark-report", inspect_file("benchmarks/public/test/report.json", json.dumps(report).encode(), []))
+
 
 if __name__ == "__main__":
     unittest.main()

@@ -12,6 +12,8 @@ dependencies = ["PyYAML>=6.0.2,<7"]
 [project.optional-dependencies]
 mcp = ["mcp>=2,<3"]
 vector = ["qdrant-client>=1.15,<2"]
+embedding-local = ["onnxruntime>=1.20,<2", "tokenizers>=0.21,<1", "huggingface-hub>=0.30,<2"]
+embedding-api = ["httpx>=0.28,<1", "tiktoken>=0.9,<1"]
 
 [project.scripts]
 knowledge-rag = "knowledge_rag.cli:main"

@@ -26,6 +26,10 @@ def main():
     sub.add_parser("serve")
     sub.add_parser("setup-status")
     sub.add_parser("install")
+    sub.add_parser("model-download")
+    sub.add_parser("embedding-check")
+    sub.add_parser("vector-build")
+    sub.add_parser("vector-status")
     vector_check = sub.add_parser("vector-check")
     vector_check.add_argument("--output", type=Path)
     preview = sub.add_parser("preview")
@@ -45,7 +49,7 @@ def main():
     search.add_argument("--kb", action="append")
     search.add_argument("--top-k", type=int, default=5)
     search.add_argument("--max-chars", type=int, default=4000)
-    search.add_argument("--strategy", choices=["bm25", "overlap"], default="bm25")
+    search.add_argument("--strategy", choices=["bm25", "overlap", "dense"], default="bm25")
     search.add_argument("--filters", type=json.loads)
     read = sub.add_parser("read")
     read.add_argument("doc_id")
@@ -55,7 +59,7 @@ def main():
     bench = sub.add_parser("benchmark")
     bench.add_argument("--dataset", type=Path, default=Path("benchmarks/datasets/smoke-v1.jsonl"))
     bench.add_argument("--output", type=Path, default=Path("benchmarks/runs"))
-    bench.add_argument("--strategy", choices=["bm25", "overlap"], default="bm25")
+    bench.add_argument("--strategy", choices=["bm25", "overlap", "dense"], default="bm25")
     bench.add_argument("--top-k", type=int, default=5)
     bench.add_argument("--max-chars", type=int, default=4000)
     bench.add_argument("--repeats", type=int, default=5)
@@ -74,9 +78,21 @@ def main():
         else:
             config = load_config(args.config)
             # Benchmarks intentionally use the explicit source configuration, not saved personal connections.
-            if args.command in ("index", "list", "search", "read"):
+            if args.command in ("index", "list", "search", "read", "vector-build", "vector-status"):
                 config = active_config(config)
-            if args.command == "vector-check":
+            if args.command == "embedding-check":
+                from .embedding_check import run_embedding_check
+                result = run_embedding_check(config)
+            elif args.command == "model-download":
+                from .model_download import download_e5, E5_MODEL, E5_REVISION
+                if config.embedding and (config.embedding.provider != "local" or config.embedding.model != E5_MODEL
+                                         or config.embedding.revision != E5_REVISION):
+                    raise ValueError("model-download supports only the pinned local E5 profile; configure other ONNX models manually")
+                result = download_e5(config.embedding.model_dir if config.embedding else config.database.parent / "models/multilingual-e5-small")
+            elif args.command in ("vector-build", "vector-status"):
+                from .dense_index import build_vector, vector_status
+                result = build_vector(config) if args.command == "vector-build" else vector_status(config)
+            elif args.command == "vector-check":
                 from .vector_check import run_vector_check
                 result = run_vector_check(args.output or config.database.parent / "vector-checks")
             elif args.command == "install":
@@ -90,7 +106,11 @@ def main():
                 result = Onboarding(config).connect(args.kb_id, args.root, args.preview_id,
                                                      args.confirmed, args.include, args.exclude)
             elif args.command == "index":
-                result = ingest(config)
+                if config.embedding and config.vector:
+                    from .dense_index import build_vector
+                    result = build_vector(config)
+                else:
+                    result = ingest(config)
             elif args.command == "list":
                 result = Retriever(config).list_knowledge_bases()
             elif args.command == "search":

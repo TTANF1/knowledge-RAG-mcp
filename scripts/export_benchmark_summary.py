@@ -40,6 +40,19 @@ def export(root: Path, source: Path, destination: Path) -> Path:
               "limitations": ["Approved synthetic development corpus only.",
                               "No private source ids, paths, queries, citations, per-query rows or traces are exported.",
                               "Small warm in-process measurements are not production performance evidence."]}
+    if report["settings"].get("strategy") == "dense":
+        spec_keys = {"provider", "model_id", "revision", "dimension", "max_tokens", "template_version", "normalize", "distance"}
+        spec = report["settings"].get("embedding_spec", {})
+        if set(spec) != spec_keys:
+            raise ValueError("dense report must have an embedding specification without extra fields")
+        for key in ("embedding_spec", "vector_mode", "query_cache", "exact", "batch_size", "threads", "token_window", "score_tolerance"):
+            public["settings"][key] = report["settings"][key]
+        build = report.get("vector_build", {})
+        public["vector_build"] = {key: build[key] for key in (
+            "documents", "chunks", "points", "split_chunks", "input_tokens", "encoding", "model_load_ms",
+            "operation_ms", "stages_ms", "storage_bytes", "process_memory") if key in build}
+        public["embedding_queries"] = {key: report.get("embedding_queries", {}).get(key, 0)
+                                       for key in ("hits", "misses", "encoded_tokens", "encode_calls", "encode_ms")}
     destination.mkdir(parents=True, exist_ok=False)
     path = destination / "report.json"
     path.write_text(json.dumps(public, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")

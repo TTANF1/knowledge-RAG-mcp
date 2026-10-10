@@ -149,14 +149,15 @@ class QdrantVectorStore:
     def _filter(self, kb_ids: list[str] | None = None, filters: dict | None = None,
                 doc_ids: Sequence[str] | None = None):
         selected = sorted(self.manifest.knowledge_bases) if kb_ids is None else kb_ids
-        if (not isinstance(selected, (list, tuple)) or not selected
+        if (not isinstance(selected, (list, tuple)) or (not selected and kb_ids is not None)
                 or any(not isinstance(kb, str) for kb in selected)
                 or not set(selected) <= self.manifest.knowledge_bases):
             raise ValueError("unknown or empty vector knowledge-base selection")
         conditions = [self.models.FieldCondition(key=key, match=self.models.MatchValue(value=value))
                       for key, value in (("record_type", "chunk-vector-v1"), ("contract_id", self.manifest.contract_id),
                                          ("generation", self.manifest.generation), ("model_spec_hash", self.manifest.spec.fingerprint))]
-        conditions.append(self.models.FieldCondition(key="kb_id", match=self.models.MatchAny(any=selected)))
+        if selected:
+            conditions.append(self.models.FieldCondition(key="kb_id", match=self.models.MatchAny(any=selected)))
         if doc_ids is not None:
             if not doc_ids or not set(doc_ids) <= {doc for doc, _ in self.manifest.source_versions}:
                 raise ValueError("unknown or empty document selection")
@@ -176,11 +177,13 @@ class QdrantVectorStore:
         return self.models.Filter(must=conditions)
 
     def search(self, vector: Sequence[float], kb_ids: list[str] | None = None, filters: dict | None = None,
-               top_k: int = 5, exact: bool = True) -> list[VectorHit]:
+               top_k: int = 5, exact: bool = True, offset: int = 0) -> list[VectorHit]:
         with self._trace("search", top_k=top_k, exact=exact) as trace:
             with trace.stage("validate"):
                 if type(top_k) is not int or not 1 <= top_k <= 50 or type(exact) is not bool:
                     raise ValueError("top_k must be 1..50 and exact must be boolean")
+                if type(offset) is not int or offset < 0:
+                    raise ValueError("vector offset must be a nonnegative integer")
                 if self.mode != "server" and not exact:
                     raise ValueError("local and memory modes support exact search only")
                 values = self.manifest.spec.validate_vector(vector)
@@ -188,7 +191,7 @@ class QdrantVectorStore:
                 self._check_collection()
             with trace.stage("query"):
                 result = self.client.query_points(self.manifest.collection, query=values,
-                    using=self.manifest.vector_name, query_filter=scope, limit=top_k,
+                    using=self.manifest.vector_name, query_filter=scope, limit=top_k, offset=offset,
                     search_params=self.models.SearchParams(exact=exact) if self.mode == "server" else None,
                     with_payload=True, with_vectors=False)
             with trace.stage("verify_results"):
